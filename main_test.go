@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
 var (
@@ -21,10 +22,31 @@ var _ = func() bool {
 	return true
 }()
 
+var testCookie *http.Cookie
+
 func init() {
+	dbPath = ":memory:"
+	initDB()
+
+	// Create a test user and session
+	_, _ = db.Exec("INSERT INTO users (username, password_hash) VALUES (?, ?)", "testuser", "nothing")
+	testCookie = &http.Cookie{
+		Name:     "auth_token",
+		Value:    "test-token",
+		Path:     "/",
+		HttpOnly: true,
+	}
+	_, _ = db.Exec("INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)", testCookie.Value, 1, time.Now().Add(1*time.Hour))
+
 	broker := sse.NewSseBroker()
 	srv = httptest.NewServer(mux(broker))
 	gitRevision = "test-revision"
+}
+
+func authenticatedGet(url string) (*http.Response, error) {
+	req, _ := http.NewRequest("GET", url, nil)
+	req.AddCookie(testCookie)
+	return http.DefaultClient.Do(req)
 }
 
 func selenoidApi() http.Handler {
@@ -73,7 +95,7 @@ func TestRootLoads(t *testing.T) {
 }
 
 func TestPing(t *testing.T) {
-	rsp, err := http.Get(withUrl("/ping"))
+	rsp, err := authenticatedGet(withUrl("/ping"))
 
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, rsp, Code{http.StatusOK})
@@ -94,7 +116,7 @@ func TestPing(t *testing.T) {
 func TestStatus(t *testing.T) {
 	selenoid := httptest.NewServer(selenoidApi())
 	statusURI, _ = url.Parse(selenoid.URL)
-	rsp, err := http.Get(withUrl("/status"))
+	rsp, err := authenticatedGet(withUrl("/status"))
 
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, rsp, Code{http.StatusOK})
@@ -105,7 +127,7 @@ func TestStatus(t *testing.T) {
 func TestVideo(t *testing.T) {
 	video := httptest.NewServer(videoApi())
 	statusURI, _ = url.Parse(video.URL)
-	rsp, err := http.Get(withUrl("/video/test_chrome.mp4"))
+	rsp, err := authenticatedGet(withUrl("/video/test_chrome.mp4"))
 
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, rsp, Code{http.StatusOK})
@@ -114,7 +136,7 @@ func TestVideo(t *testing.T) {
 
 func TestVideoFail(t *testing.T) {
 	statusURI, _ = url.Parse("http://localhost:1")
-	rsp, err := http.Get(withUrl("/video/test_chrome1.mp4"))
+	rsp, err := authenticatedGet(withUrl("/video/test_chrome1.mp4"))
 
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, rsp, Code{http.StatusBadGateway})
@@ -123,7 +145,7 @@ func TestVideoFail(t *testing.T) {
 
 func TestStatusError(t *testing.T) {
 	statusURI, _ = url.Parse("http://localhost:1")
-	rsp, err := http.Get(withUrl("/status"))
+	rsp, err := authenticatedGet(withUrl("/status"))
 
 	AssertThat(t, err, Is{nil})
 	AssertThat(t, rsp, Code{http.StatusInternalServerError})

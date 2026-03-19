@@ -13,11 +13,14 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-var db *sql.DB
+var (
+	db     *sql.DB
+	dbPath = "selenoid.db"
+)
 
 func initDB() {
 	var err error
-	db, err = sql.Open("sqlite", "selenoid.db")
+	db, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatalf("[AUTH] Failed to open SQLite DB: %v", err)
 	}
