@@ -8,6 +8,7 @@ require (
 	github.com/aerokube/util v1.0.0
 	github.com/koding/websocketproxy v0.0.0-20181220232114-7ed82d81a28c
 	github.com/rakyll/statik v0.1.7
+	modernc.org/sqlite v1.28.0
 )
 
 require (

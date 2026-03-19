@@ -49,19 +49,27 @@ var (
 func mux(sse *sse.SseBroker) http.Handler {
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServer(statik))
-	mux.Handle("/events", sse)
-	mux.HandleFunc("/ws/", ws)
-	mux.HandleFunc("/ping", ping)
-	mux.HandleFunc("/status", status)
-	mux.HandleFunc("/video/", func(w http.ResponseWriter, r *http.Request) {
+
+	// Auth API endpoints
+	mux.HandleFunc("/api/register", register)
+	mux.HandleFunc("/api/login", login)
+	mux.HandleFunc("/api/logout", logout)
+	mux.HandleFunc("/api/me", me)
+
+	// Protected endpoints using authMiddleware
+	mux.Handle("/events", authMiddleware(sse))
+	mux.Handle("/ws/", authMiddleware(http.HandlerFunc(ws)))
+	mux.Handle("/ping", authMiddleware(http.HandlerFunc(ping)))
+	mux.Handle("/status", authMiddleware(http.HandlerFunc(status)))
+	mux.Handle("/video/", authMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reverseProxy(statusURI).ServeHTTP(w, r)
-	})
-	mux.HandleFunc("/wd/hub/", func(w http.ResponseWriter, r *http.Request) {
+	})))
+	mux.Handle("/wd/hub/", authMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reverseProxy(webdriverURI).ServeHTTP(w, r)
-	})
-	mux.HandleFunc("/clipboard/", func(w http.ResponseWriter, r *http.Request) {
+	})))
+	mux.Handle("/clipboard/", authMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		reverseProxy(webdriverURI).ServeHTTP(w, r)
-	})
+	})))
 	return mux
 }
 
@@ -193,6 +201,8 @@ func init() {
 }
 
 func main() {
+	initDB() // Initialize SQLite schema and connection
+
 	broker := sse.NewSseBroker()
 	stop := make(chan os.Signal)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)

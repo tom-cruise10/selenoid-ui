@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { HashRouter as Router, Link, Route } from "react-router-dom";
+import { Link, Route } from "react-router-dom";
 import { merge, Observable, of, timer } from "rxjs";
 import { catchError, delayWhen, flatMap, map, pluck, retryWhen, tap } from "rxjs/operators";
 import { ajax } from "rxjs/ajax";
@@ -121,25 +121,28 @@ const Viewport = () => {
     return (
         <>
             <GlobalStyle />
-            <Router>
-                <StatsBar>
-                    <Link to="/">
-                        <Logo>&nbsp;</Logo>
-                    </Link>
+            <StatsBar>
+                <Link to="/">
+                    <Logo>&nbsp;</Logo>
+                </Link>
 
-                    <PanelFilter {...{ select, query, onQuery }} />
+                <PanelFilter {...{ select, query, onQuery }} />
 
-                    <Status status={sse} header="sse" version={version} />
-                    <Status status={status} header="selenoid" />
+                <Status status={sse} header="sse" version={version} />
+                <Status status={status} header="selenoid" />
 
-                    <Separator>&nbsp;</Separator>
+                <Separator>&nbsp;</Separator>
 
-                    <Used total={state.total} used={state.used} pending={state.pending} />
-                    <Separator>&nbsp;</Separator>
-                    <Queue queued={state.queued} />
-                    <Separator>&nbsp;</Separator>
-                    <Quota total={state.total} used={state.used} pending={state.pending} />
-                </StatsBar>
+                <Used total={state.total} used={state.used} pending={state.pending} />
+                <Separator>&nbsp;</Separator>
+                <Queue queued={state.queued} />
+                <Separator>&nbsp;</Separator>
+                <Quota total={state.total} used={state.used} pending={state.pending} />
+                <Separator>&nbsp;</Separator>
+                <LogoutButton onClick={() => {
+                    fetch('/api/logout').then(() => window.location.reload());
+                }}>Logout</LogoutButton>
+            </StatsBar>
                 <StyledViewport>
                     <StyledTopBar>
                         <Navigation links={links(state.videos)} />
@@ -188,7 +191,6 @@ const Viewport = () => {
                         )}
                     />
                 </StyledViewport>
-            </Router>
         </>
     );
 };
@@ -276,5 +278,25 @@ const Logo = styled.div`
         box-shadow: 0 0 10px 5px ${aerokubeColor};
         border: 5px solid #272727;
         background-color: ${aerokubeColorBright};
+    }
+`;
+
+const LogoutButton = styled.button`
+    background: transparent;
+    border: 1px solid rgba(255, 75, 75, 0.5);
+    color: #ffb3b3;
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    outline: none;
+    
+    &:hover {
+        background: rgba(255, 75, 75, 0.2);
+        color: #fff;
+        border-color: #ff4b4b;
     }
 `;
