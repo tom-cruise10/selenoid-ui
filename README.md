@@ -1,45 +1,59 @@
-# Selenoid UI
-[![Build Status](https://travis-ci.org/aerokube/selenoid-ui.svg?branch=master)](https://travis-ci.org/aerokube/selenoid-ui)
-[![Coverage](https://codecov.io/github/aerokube/selenoid-ui/coverage.svg)](https://codecov.io/gh/aerokube/selenoid-ui)
-[![Release](https://img.shields.io/github/release/aerokube/selenoid-ui.svg)](https://github.com/aerokube/selenoid-ui/releases/latest)
-[![Docker Pulls](https://img.shields.io/docker/pulls/aerokube/selenoid-ui.svg)](https://hub.docker.com/r/aerokube/selenoid-ui)
+# Selenoid UI (Custom Fork)
 
-**UNMAINTAINED**. Consider https://aerokube.com/moon/latest as alternative.
-
-Simple status page with UI updates by SSE,
-backed by constant polling of status handle
-of [selenoid](https://github.com/aerokube/selenoid) on small go backend.
+A modern, full-stack status page for [Selenoid](https://github.com/aerokube/selenoid) featuring built-in user authentication and SQLite persistence.
 
 ![ui](docs/img/stats-sessions.png)
 
-## Usage
+## ✨ New Features
 
-We distribute UI as a lightweight [Docker](http://docker.com/) container. To run it type:
+- **Built-in Authentication**: Secure Login and Signup system.
+- **SQLite Database**: Persistence for user sessions and accounts (stored in `selenoid.db`).
+- **Premium UI**: Modernized React frontend with glassmorphism-themed auth pages.
+- **GHCR Integration**: Automated image publishing exclusively to GitHub Container Registry.
+
+## 🚀 Usage
+
+We distribute this UI as a lightweight Docker container published to GitHub Container Registry.
+
+### Run with Docker
+
+```bash
+docker run -d --name selenoid-ui \
+    -p 8080:8080 \
+    ghcr.io/${GITHUB_REPOSITORY_OWNER}/selenoid-ui:latest \
+    --selenoid-uri=http://your-selenoid-host:4444
 ```
-$ docker run -d --name selenoid-ui  \
-    --link selenoid                 \
-    -p 8080:8080                    \
-    aerokube/selenoid-ui --selenoid-uri=http://selenoid:4444
-```
 
-where `--link selenoid` links with running container named `selenoid` with selenoid inside
+### Run Locally (Go)
 
-Then access the UI on port 8080:
-```
-http://localhost:8080/
-```
-The following flags are supported:
+1. Build the binary:
+   ```bash
+   go build -o selenoid-ui
+   ```
+2. Start the service:
+   ```bash
+   ./selenoid-ui --selenoid-uri http://localhost:4444
+   ```
+   *The `selenoid.db` file will be created automatically on the first run.*
 
-- `--listen` - host and port to listen (e.g. `:1234`)
-- `--period` - data refresh period (e.g. `5s` or `1m`)
-- `--selenoid-uri` - selenoid uri to fetch data from (e.g. `http://selenoid.example.com:4444/`)
+## ⚙️ Configuration Flags
 
-## Features, Screenshots and Complete Guide
+- `--listen` - Host and port to listen on (default `:8080`).
+- `--period` - Data refresh period (e.g., `5s` or `1m`).
+- `--selenoid-uri` - Selenoid URI to fetch data from.
 
-Can be found at http://aerokube.com/selenoid-ui/latest/
+## 🛡️ Authentication Flow
 
-## Usage note
+1. **Initial Access**: Navigate to `http://localhost:8080`. You will be redirected to the Login page.
+2. **Signup**: Use the "Sign up" link to create your first administrative user.
+3. **Login**: Authenticate to unlock the Dashboard, SSE events, and WebSocket proxies.
+4. **Logout**: Clear your session via the Logout button in the header.
 
-This UI is designed for debug purposes for one selenoid node. If you need
-monitoring capabilities on more than one selenoid, consider
-to use [external monitoring system](http://aerokube.com/selenoid/latest/#_sending_statistics_to_external_systems)
+## 📦 Deployment (CI/CD)
+
+This project uses GitHub Actions to build and push images to **GitHub Container Registry (GHCR.io)**:
+- **Build**: Triggered on every push to `master`.
+- **Release**: Triggered on formal GitHub Releases.
+
+> [!IMPORTANT]
+> This fork purely uses GHCR for container distribution. Docker Hub and Quay.io are no longer used.
