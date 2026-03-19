@@ -6,7 +6,7 @@ yarn --cwd ui test
 
 export GO111MODULE="on"
 go install github.com/rakyll/statik@latest
-go generate github.com/aerokube/selenoid-ui
+go generate github.com/tom-cruise10/selenoid-ui
 go test -race -v -coverprofile=coverage.txt -covermode=atomic ./...
 
 go install golang.org/x/vuln/cmd/govulncheck@latest

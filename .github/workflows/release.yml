@@ -12,7 +12,7 @@ jobs:
       - name: Set Golang
         uses: actions/setup-go@v2
         with:
-          go-version: ~1.21.5
+          go-version: '1.22'
       - uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
@@ -40,7 +40,9 @@ jobs:
         run: ci/test.sh
 
       - name: Build
-        run: ci/build.sh
+        run: |
+          go mod tidy
+          ci/build.sh
 
       - name: Prepare release version
         run: echo "RELEASE_VERSION=${GITHUB_REF:10}" >> $GITHUB_ENV

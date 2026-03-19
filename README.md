@@ -20,14 +20,15 @@ We distribute this UI as a lightweight Docker container published to GitHub Cont
 ```bash
 docker run -d --name selenoid-ui \
     -p 8080:8080 \
-    ghcr.io/${GITHUB_REPOSITORY_OWNER}/selenoid-ui:latest \
+    ghcr.io/tom-cruise10/selenoid-ui:latest \
     --selenoid-uri=http://your-selenoid-host:4444
 ```
 
 ### Run Locally (Go)
 
-1. Build the binary:
+1. Build the binary (sync dependencies first):
    ```bash
+   go mod tidy
    go build -o selenoid-ui
    ```
 2. Start the service:
